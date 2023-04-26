@@ -1,0 +1,83 @@
+<html>
+  <head>
+    <title>Zadanie 1 Vue</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+  </head>
+
+  <body>
+    <div id="app">
+      <header>
+        <h2 class="ms-3 mt-2" v-text="sitename"></h2>
+      </header>
+      <main>
+        <div class="d-flex justify-content-center align-items-center mt-5">
+          <div class="col-3">
+            <img class="img-fluid" v-bind:src="product.image" />
+          </div>
+          <div class="">
+            <div>
+              <h1 v-text="product.title"></h1>
+            </div>
+            <div
+              class="d-flex justify-content-center"
+              v-html="product.description"
+            ></div>
+            <div class="d-flex justify-content-center align-items-center fs-3">
+              <label>price:</label>
+              <labe class="fw-bolder">{{ product.price | formatPrice }} </labe>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script type="text/javascript">
+      const webstore = new Vue({
+        el: "#app",
+        data: {
+          sitename: "Sklep",
+          product: {
+            id: 1001,
+            title: "Worek ziemniaków 10 kg",
+            description: "10-kilogramowe opakowanie pysznych ziemniaków.",
+            price: 100000000,
+            image: "./src/assets/Images/potato.jpg",
+          },
+        },
+
+        
+        filters: {
+          formatPrice: function (price) {
+            const rest = price % 100;
+            let full = (price / 100) | 0;
+
+            let finallResult = "";
+            let count = 0;
+
+            do {
+              if (count === 3) {
+                finallResult = ` ${finallResult}`;
+                count = 0;
+              }
+
+              finallResult = `${full % 10}${finallResult}`;
+              full = (full / 10) | 0;
+              count++;
+            } while (full > 0);
+
+            if (price < 100) {
+              finallResult = "0" + finallResult;
+            }
+            return `${finallResult},${rest < 10 ? "0" + rest : rest} zł`;
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

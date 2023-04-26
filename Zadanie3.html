@@ -1,0 +1,320 @@
+<html>
+  <head>
+    <title>Vue</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </head>
+
+  <body>
+    <div id="app">
+      <header>
+        <div class="navbar navbar-default">
+          <h1 v-text="siteName">{{ siteName }}</h1>
+        </div>
+        <div class="nav navbar-nav navbar-right cart me-3">
+          <button
+            type="button"
+            class="btn btn-default btn-lg"
+            v-on:click="showCheckout"
+          >
+            <span class="glyphicon glyphicon-shopping-cart me-2"
+              >{{ cartItemCount}} </span
+            >Kasa
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <div class="row product">
+          <div v-if="showProduct === false">
+            <div>Koszyk: {{cart}}</div>
+            <ul class="mb-5 mt-1">
+              <li
+                v-for="id in cart.filter((value, index, self) => self.indexOf(value) === index)"
+              >
+                {{ product.title }} {{ cart.filter(x => x === id).length }} x {{
+                product.price | formatPrice }}
+                <p
+                  v-if="product.availableInventory === 0 && cart.filter(x => x === id).length > 1 "
+                >
+                  Naliczono 20 % zniżki!!!
+                </p>
+              </li>
+            </ul>
+            <h4>total: {{ total | formatPrice }}</h4>
+            <h4 v-if="rabat > 0">
+              Discound: -{{ total * rabat | formatPrice }}
+            </h4>
+            <h4 v-if="grandTotal > 0 ">
+              grandTotal: {{ grandTotal | formatPrice }}
+            </h4>
+            <button class="btn btn-success">zamów</button>
+          </div>
+          <div v-else>
+            <div class="row product">
+              <div class="col">
+                <figure>
+                  <img class="col-9" v-bind:src="product.image" />
+                </figure>
+              </div>
+
+              <div class="col col-expand">
+                <h1 v-text="product.title"></h1>
+                <p class="fs-3" v-html="product.description"></p>
+                <p class="price fs-2">
+                  Dostępne: {{ product.availableInventory }} szt.
+                </p>
+                <p class="price fs-2">{{ product.price | formatPrice }}</p>
+                <button
+                  class="default btn btn-success"
+                  v-on:click="addToCart"
+                  v-if="canAddToCart"
+                >
+                  Add to cart
+                </button>
+
+                <button
+                  class="default bg-danger"
+                  v-on:click="removeFromCart"
+                  v-if="canRemoveFromCart"
+                >
+                  rem from cart
+                </button>
+
+                <p v-if="this.cartItemCount < 5 && this.cartItemCount > 0">
+                  Jak wykupisz wszystkie produkty to otrzymasz 20% zniżki!
+                </p>
+                <p v-if="this.cartItemCount=== product.availableInventory">
+                  Gratulacje! 20 % zniżki naliczone w koszyku!!!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <strong>Imię:</strong>
+          <input v-model="order.firstName" class="form-control" />
+        </div>
+
+        <div class="col-md-6">
+          <strong>Nazwisko:</strong>
+          <input v-model="order.lastName" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-12"><strong>Adres:</strong></div>
+          <div class="col-md-12">
+            <input v-model="order.address" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-12"><strong>Miejscowość:</strong></div>
+          <div class="col-md-12">
+            <input v-model="order.city" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-2">
+            <strong>Województwo:</strong>
+            <select v-model="order.state" class="form-control">
+              <option disabledvalue="">Województwo</option>
+              <option v-for="(state, key) in states" v-bind:value="key">
+                {{state}}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-6 col-md-offset-4">
+            <strong>Kod pocztowy:</strong>
+            <input v-model="order.zip" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-6boxes">
+            <input
+              type="radio"
+              id="home"
+              v-bind:value="order.home"
+              v-model="order.method"
+            />
+            <label for="home">Domowy</label>
+            <input
+              type="radio"
+              id="buisness"
+              v-bind:value="order.buisness"
+              v-model="order.method"
+            />
+            <label for="business">Firmowy</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-6 boxes">
+            <input
+              type="checkbox"
+              v-model="order.gift"
+              id="gift"
+              value="true"
+              v-bind:true-value="order.sendGift"
+              v-bind:false-value="order.dontSendGift"
+            />
+            <label for="gift">Wysłać jako prezent?</label>
+          </div>
+        </div>
+
+        <div class="col-md-12 verify">
+          <pre>
+                Imię: {{order.firstName}} 
+                Nazwisko: {{order.lastName}}
+                Adres: {{order.address}}
+                Miejscowość: {{order.city}}
+                Województwo: {{order.state}}
+                Kod pocztowy: {{order.zip}} 
+                Metoda: {{order.method}}
+                Prezent: {{order.gift}}
+
+            </pre
+          >
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-6">
+            <button
+              type="submit"
+              class="btn btn-primary submit"
+            >
+              Złóż zamówienie
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script type="text/javascript">
+      const webstore = new Vue({
+        el: "#app",
+
+        data: {
+          order: {
+            firstName: "",
+            lastName: "",
+            address: "",
+            city: "",
+            zip: "",
+            state: "",
+            method: "Adres domowy",
+            buisness: "Adres firmowy",
+            home: "Adres domowy",
+            gift: "Wyślij jako prezent",
+            sendGift: "Wyślij jako prezent",
+            dontSendGift: "Nie wysyłaj jako prezent",
+          },
+          states: {
+            DL: "Dolnośląskie",
+            SL: "Śląskie",
+            LB: "Lubelskie",
+            MZ: "Mazowieckie",
+          },
+
+          showProduct: true,
+          siteName: "Sklep",
+          product: {
+            id: 1001,
+            title: "Worek ziemniaków 10 kg",
+            description:
+              "<li>10-kilogramowe opakowanie pysznych ziemniaków.</li>",
+            price: 1000,
+            image: "./src/assets/images/potato.jpg",
+            availableInventory: 5,
+          },
+          cart: [],
+          total: 0,
+          rabat: 0,
+          grandTotal: 0,
+        },
+
+        methods: {
+          addToCart: function () {
+            let inv = this.product.availableInventory - this.cartItemCount;
+            this.cart.push(this.product.id);
+            this.total += this.product.price;
+            console.log(inv);
+          },
+          showCheckout() {
+            this.showProduct = !this.showProduct;
+          },
+          removeFromCart: function () {
+            const index = this.cart.indexOf(this.product.id);
+            if (index !== -1) {
+              this.cart.splice(index, 1);
+              this.total -= this.product.price;
+            }
+          },
+        },
+        computed: {
+          cartItemCount: function () {
+            return this.cart.length || "";
+          },
+          canAddToCart: function () {
+            return this.product.availableInventory > this.cartItemCount
+              ? true
+              : (() => {
+                  this.rabat = 0.2;
+                  this.grandTotal = this.total - this.total * this.rabat;
+                  return false;
+                })();
+          },
+          canRemoveFromCart: function () {
+            if (this.cart.includes(this.product.id)) {
+              return true;
+            } else {
+              return false;
+            }
+          },
+        },
+        filters: {
+          formatPrice: function (price) {
+            const rest = price % 100;
+            let full = (price / 100) | 0;
+
+            let finallResult = "";
+            let count = 0;
+
+            do {
+              if (count === 3) {
+                finallResult = ` ${finallResult}`;
+                count = 0;
+              }
+
+              finallResult = `${full % 10}${finallResult}`;
+              full = (full / 10) | 0;
+              count++;
+            } while (full > 0);
+
+            if (price < 100) {
+              finallResult = "0" + finallResult;
+            }
+            return `${finallResult},${rest < 10 ? "0" + rest : rest} zł`;
+          },
+
+        },
+      });
+    </script>
+  </body>
+</html>
